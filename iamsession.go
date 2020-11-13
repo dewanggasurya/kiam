@@ -59,6 +59,17 @@ func NewSessionPool(log *toolkit.LogEngine) *SessionPool {
 	return sp
 }
 
+func (sp *SessionPool) GetIDs() []string {
+	res := []string{}
+	if sp.sessions == nil {
+		sp.sessions = map[string]*Session{}
+	}
+	for k := range sp.sessions {
+		res = append(res, k)
+	}
+	return res
+}
+
 func (sp *SessionPool) GetBySessionID(id string) (*Session, bool) {
 	sp.mtx.RLock()
 	defer sp.mtx.RUnlock()
