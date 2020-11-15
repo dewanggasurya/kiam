@@ -10,6 +10,7 @@ type IAMStorage interface {
 	Load(pool *SessionPool) error
 	Store(pool *SessionPool) error
 	Get(pool *SessionPool, id string) (*Session, error)
+	Remove(pool *SessionPool, id string)
 	Write(pool *SessionPool, sess *Session) error
 	Close()
 }
@@ -56,8 +57,12 @@ func (j *jsonStorage) Get(pool *SessionPool, id string) (*Session, error) {
 	return nil, nil
 }
 
+func (j *jsonStorage) Remove(pool *SessionPool, id string) {
+	j.Store(pool)
+}
+
 func (j *jsonStorage) Write(pool *SessionPool, s *Session) error {
-	return nil
+	return j.Store(pool)
 }
 
 func (j *jsonStorage) Close() {

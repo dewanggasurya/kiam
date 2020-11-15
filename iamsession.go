@@ -83,7 +83,7 @@ func (sp *SessionPool) GetByReferenceID(id string) (*Session, bool) {
 	defer sp.mtx.RUnlock()
 
 	seid, ok := sp.refs[id]
-	if seid != "" || !ok {
+	if seid == "" || !ok {
 		return nil, false
 	}
 
@@ -92,16 +92,16 @@ func (sp *SessionPool) GetByReferenceID(id string) (*Session, bool) {
 }
 
 func (sp *SessionPool) Create(referenceID string, data interface{}, second int) (*Session, error) {
-	_, ok := sp.GetByReferenceID(referenceID)
+	se, ok := sp.GetByReferenceID(referenceID)
 	if ok {
-		return nil, errors.New("Session for referenceID " + referenceID + " is already exist")
+		return nil, errors.New("Session already exist")
 	}
 
 	if second == 0 {
 		second = int(sp.CleanUpDuration) / int(time.Second)
 	}
 
-	se := new(Session)
+	se = new(Session)
 	se.SessionID = uuid.New().String()
 	se.ReferenceID = referenceID
 	se.Data = data
