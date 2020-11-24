@@ -17,7 +17,3 @@ func (p *passwrd) TableName() string {
 func (p *passwrd) SetID(keys ...interface{}) {
 	p.ID = keys[0].(string)
 }
-
-func (m *manager) RecoverPassword(email string) error {
-	return nil
-}

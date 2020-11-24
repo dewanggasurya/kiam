@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -63,7 +64,7 @@ func (s *store) Store(pool *kiam.SessionPool) error {
 	return nil
 }
 
-func (s *store) Get(pool *kiam.SessionPool, id string) (*kiam.Session, error) {
+func (s *store) Get(id string) (*kiam.Session, error) {
 	locPath := filepath.Join(s.folderPath, id+".json")
 	bs, e := ioutil.ReadFile(locPath)
 	if e != nil {
@@ -75,9 +76,6 @@ func (s *store) Get(pool *kiam.SessionPool, id string) (*kiam.Session, error) {
 		return nil, fmt.Errorf("fail serializing file %s. %s", id, e.Error())
 	}
 
-	if sess, e = pool.Create(sess.ReferenceID, sess.Data, int(sess.Duration)/int(time.Second)); e != nil {
-		return nil, fmt.Errorf("fail to create session. %s", e.Error())
-	}
 	return sess, nil
 }
 
@@ -92,6 +90,11 @@ func (s *store) Write(sess *kiam.Session) error {
 		return fmt.Errorf("fail write file %s. %s", sess.SessionID, e.Error())
 	}
 	return nil
+}
+
+func (s *store) Remove(id string) {
+	locPath := filepath.Join(s.folderPath, id+".json")
+	os.Remove(locPath)
 }
 
 func (s *store) Close() {

@@ -7,7 +7,7 @@ import (
 
 type Policy struct {
 	orm.DataModelBase `bson:"-" json:"-"`
-	ID                string `bson:"_id,omitempty" json:"_id,omitempty"`
+	ID                string `bson:"_id" json:"_id"`
 	Name              string
 }
 

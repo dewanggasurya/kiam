@@ -4,11 +4,14 @@ import (
 	"errors"
 
 	"git.kanosolution.net/kano/kaos"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/eaciit/toolkit"
 )
 
 type Options struct {
 	Storage           IAMStorage
+	SignMethod        jwt.SigningMethod
+	SignSecret        string
 	AllowMultiSession bool
 	MultiSession      int
 }
@@ -34,22 +37,37 @@ func NewIAM(logger *toolkit.LogEngine, secondLifeTime int, opt *Options) *Manage
 	return ae
 }
 
+func (m *Manager) Options() Options {
+	return m.opts
+}
+
 func (a *Manager) Get(ctx *kaos.Context, parm toolkit.M) (*Session, error) {
 	var err error
 	id := parm.GetString("ID")
 	if id == "" {
 		return nil, errors.New("ID is mandatory")
 	}
+
 	session, ok := a.pool.GetBySessionID(id)
 	if !ok {
 		if a.opts.Storage == nil {
 			return nil, errors.New("Session not found")
 		}
-		session, err = a.opts.Storage.Get(a.pool, id)
+
+		session, err = a.opts.Storage.Get(id)
 		if err != nil {
 			return nil, errors.New("Session not found. " + err.Error())
 		}
+
+		// session found from storage, update session pool
+		func() {
+			a.pool.mtx.Lock()
+			defer a.pool.mtx.Unlock()
+			a.pool.sessions[session.SessionID] = session
+			a.pool.refs[session.ReferenceID] = session.SessionID
+		}()
 	}
+
 	a.pool.Update(session.SessionID, 0)
 	return session, nil
 }
@@ -67,12 +85,12 @@ func (a *Manager) Create(ctx *kaos.Context, parm toolkit.M) (*Session, error) {
 
 	s, e := a.pool.Create(id, nil, duration)
 	if e == nil && a.opts.Storage != nil {
-		go a.opts.Storage.Write(a.pool, s)
+		go a.opts.Storage.Write(s)
 	}
 	return s, e
 }
 
-func (a *Manager) FindOrCreate(ctx *kaos.Context, parm toolkit.M) (*Session, error) {
+func (a *Manager) FindOrCreate(ctx *kaos.Context, parm toolkit.M, data toolkit.M) (*Session, error) {
 	id := parm.GetString("ID")
 	duration := parm.GetInt("Second")
 	if duration == 0 {
@@ -85,9 +103,9 @@ func (a *Manager) FindOrCreate(ctx *kaos.Context, parm toolkit.M) (*Session, err
 
 	s, ok := a.pool.GetByReferenceID(id)
 	if !ok {
-		s, e := a.pool.Create(id, nil, duration)
+		s, e := a.pool.Create(id, data, duration)
 		if e == nil && a.opts.Storage != nil {
-			go a.opts.Storage.Write(a.pool, s)
+			go a.opts.Storage.Write(s)
 		}
 		return s, e
 	}
@@ -107,7 +125,7 @@ func (a *Manager) Renew(ctx *kaos.Context, parm toolkit.M) (*Session, error) {
 	}
 	se, _ := a.pool.GetBySessionID(seid)
 	if a.opts.Storage != nil {
-		go a.opts.Storage.Write(a.pool, se)
+		go a.opts.Storage.Write(se)
 	}
 	return se, nil
 }
@@ -124,7 +142,7 @@ func (a *Manager) Remove(ctx *kaos.Context, parm toolkit.M) (string, error) {
 	delete(a.pool.sessions, se.SessionID)
 
 	if a.opts.Storage != nil {
-		go a.opts.Storage.Remove(a.pool, se.SessionID)
+		go a.opts.Storage.Remove(se.SessionID)
 	}
 	return "", nil
 }

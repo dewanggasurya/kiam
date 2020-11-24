@@ -13,7 +13,7 @@ import (
 type Session struct {
 	SessionID   string
 	ReferenceID string
-	Data        interface{}
+	Data        toolkit.M
 	LastUpdate  time.Time
 	Duration    int
 }
@@ -91,7 +91,7 @@ func (sp *SessionPool) GetByReferenceID(id string) (*Session, bool) {
 	return se, ok
 }
 
-func (sp *SessionPool) Create(referenceID string, data interface{}, second int) (*Session, error) {
+func (sp *SessionPool) Create(referenceID string, data toolkit.M, second int) (*Session, error) {
 	se, ok := sp.GetByReferenceID(referenceID)
 	if ok {
 		return nil, errors.New("Session already exist")

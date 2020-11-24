@@ -61,9 +61,9 @@ func (m *manager) CreateUser(loginid, name, email, phone, password string) (*Use
 	// check for existing user
 	var w *dbf.Filter
 	if loginid == "" {
-		w = dbf.Or(dbf.Eq("Name", name), dbf.Eq("Email", email), dbf.Eq("Phone", phone))
+		w = dbf.Eq("Email", email)
 	} else {
-		w = dbf.Or(dbf.Eq("LoginID", loginid), dbf.Eq("Name", name), dbf.Eq("Email", email), dbf.Eq("Phone", phone))
+		w = dbf.Or(dbf.Eq("LoginID", loginid), dbf.Eq("Email", email))
 	}
 	u := new(User)
 
