@@ -11,7 +11,7 @@ import (
 
 type Group struct {
 	orm.DataModelBase `bson:"-" json:"-"`
-	ID                string `bson:"_id" json:"_id"`
+	ID                string `bson:"_id" json:"_id" key:"1"`
 	Name              string
 }
 

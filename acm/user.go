@@ -13,15 +13,15 @@ import (
 
 type User struct {
 	orm.DataModelBase `bson:"-" json:"-" ecname:"-"`
-	ID                string `bson:"_id" json:"_id" key:"1"`
-	LoginID           string
-	Name              string
-	Email             string
-	Phone             string
-	Kind              string
-	Enable            bool
-	Created           time.Time
-	LastUpdate        time.Time
+	ID                string    `bson:"_id" json:"_id" key:"1" grid-show:"include" form-show:"hide"`
+	LoginID           string    `search:"1" kf-pos:"2,1"`
+	Name              string    `search:"1" kf-pos:"1,1"`
+	Email             string    `search:"1" kf-pos:"2,2"`
+	Phone             string    `search:"1" kf-pos:"3,1"`
+	Kind              string    `kf-pos:"3,2"`
+	Enable            bool      `kf-pos:"4,1"`
+	Created           time.Time `grid-show:"hide" kf-pos:"10,1" readonly:"1"`
+	LastUpdate        time.Time `kf-pos:"10,2" readonly:"1"`
 }
 
 func (u *User) TableName() string {
