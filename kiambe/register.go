@@ -61,14 +61,16 @@ func (re *registerEngine) Register(ctx *kaos.Context, parm toolkit.M) (string, e
 		re.opts.FnPostRegister(user, parm)
 	}
 
-	ev, e := ctx.DefaultEvent()
-	if ev == nil {
-		return "", errors.New("invalid eventhub")
-	}
+	if re.opts.SendNotifTopic != "" {
+		ev, _ := ctx.DefaultEvent()
+		if ev == nil {
+			return "", errors.New("invalid eventhub")
+		}
 
-	reply := ""
-	if err := ev.Publish(re.opts.SendNotifTopic, msg.ID, &reply); err != nil {
-		return "", errors.New("system error when sending token: " + err.Error())
+		reply := ""
+		if err := ev.Publish(re.opts.SendNotifTopic, msg.ID, &reply); err != nil {
+			return "", errors.New("system error when sending token: " + err.Error())
+		}
 	}
 
 	return "OK", nil
