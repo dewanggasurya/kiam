@@ -98,5 +98,8 @@ func (fp *fpass) ChangePwd(ctx *kaos.Context, req toolkit.M) (string, error) {
 		return "", errors.New("fail change password: " + e.Error())
 	}
 
+	t.Status = "Used"
+	h.Save(t)
+
 	return "OK", nil
 }
