@@ -15,10 +15,10 @@ type RegisterOptions struct {
 }
 
 type registerEngine struct {
-	Name           string `kf-pos:"1,1" label:"Nama lengkap" required:"true"`
+	Name           string `kf-pos:"1,1" label:"Nama lengkap" required:"true" form-show:"hide"`
 	LoginID        string `kf-pos:"2,1" label:"Login ID" required:"true"`
 	Email          string `kf-pos:"3,1" label:"Email" required:"true"`
-	Phone          string `kf-pos:"4,1" label:"Mobile phone" required:"true"`
+	Phone          string `kf-pos:"4,1" label:"Mobile phone" required:"true" form-show:"hide"`
 	Password       string `kf-pos:"5,1" kf-control:"password" required:"true"`
 	ConfimPassword string `kf-pos:"6,1" kf-control:"password" label:"Confirm password" required:"true"`
 

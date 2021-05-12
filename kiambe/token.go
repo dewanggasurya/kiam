@@ -19,7 +19,7 @@ func NewTokenEngine() *tokenEngine {
 
 func (te *tokenEngine) Claim(ctx *kaos.Context, req toolkit.M) (toolkit.M, error) {
 	res := toolkit.M{}
-	userid := ctx.Data().Get("jwt-user-id", "").(string)
+	userid := ctx.Data().Get("jwt-reference-id", "").(string)
 
 	h, e := ctx.DefaultHub()
 	if h == nil {

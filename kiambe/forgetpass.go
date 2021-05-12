@@ -83,13 +83,13 @@ func (fp *fpass) ChangePwd(ctx *kaos.Context, req toolkit.M) (string, error) {
 	if t.ID == "" || t.Kind != "ForgetPassToken" || t.Status != "Claimed" {
 		return "", errors.New("invalid token")
 	}
-	if time.Now().After(t.ClaimTime.Add(10 * time.Minute)) {
+	if time.Now().After(t.ClaimTime.Add(time.Duration(t.ValidDurationInMinute) * time.Minute)) {
 		return "", errors.New("expired token")
 	}
 
 	u := new(acm.User)
 	h.GetByAttr(u, "Email", email)
-	if u.Email != email {
+	if t.UserID != u.ID {
 		return "", errors.New("invalid token")
 	}
 
