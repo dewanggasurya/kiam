@@ -54,13 +54,18 @@ func (a *Manager) Get(ctx *kaos.Context, parm toolkit.M) (*Session, error) {
 
 	session, ok := a.pool.GetBySessionID(id)
 	if !ok {
-		if a.opts.Storage == nil {
-			return nil, errors.New("Session not found")
-		}
 
-		session, err = a.opts.Storage.Get(id)
-		if err != nil {
-			return nil, errors.New("Session not found. " + err.Error())
+		session, ok = a.pool.GetByReferenceID(id)
+		if !ok {
+			if a.opts.Storage == nil {
+				return nil, errors.New("Session not found")
+			}
+
+			session, err = a.opts.Storage.Get(id)
+			if err != nil {
+				return nil, errors.New("Session not found. " + err.Error())
+
+			}
 		}
 
 		// session found from storage, update session pool
