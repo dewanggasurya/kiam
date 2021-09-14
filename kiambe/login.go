@@ -3,6 +3,7 @@ package kiambe
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"git.kanosolution.net/kano/kaos"
 	"github.com/ariefdarmawan/kiam"
@@ -12,9 +13,10 @@ import (
 )
 
 type loginEngine struct {
-	LoginID    string `kf-pos:"1,1" required:"true" label:"Login ID, email atau mobile no"`
-	Password   string `kf-pos:"2,1" required:"true" label:"Password" kf-control:"password"`
-	RememberMe bool   `kf-pos:"3,1"`
+	LoginID        string `kf-pos:"1,1" required:"true" label:"Login ID, email atau mobile no"`
+	Password       string `kf-pos:"2,1" required:"true" label:"Password" kf-control:"password"`
+	RememberMe     bool   `kf-pos:"3,1"`
+	SecondLifeTime int    `form-show:"hide" grid-show:"hide"`
 
 	im                 *kiam.Manager
 	fnPostAuthenticate func(u *acm.User, m *toolkit.M)
@@ -77,8 +79,16 @@ func (l *loginEngine) Authenticate(ctx *kaos.Context, req *loginEngine) (toolkit
 		return toolkit.M{}, err
 	}
 	// jwt-ed
+	secondLifeTime := l.SecondLifeTime
+	if secondLifeTime == 0 {
+		secondLifeTime = l.im.Options().SecondLifeTime
+	}
+	if secondLifeTime == 0 {
+		secondLifeTime = 60 * 60 * 24 //1 day
+	}
 	bc := new(jwt.StandardClaims)
 	bc.Id = token.SessionID
+	bc.ExpiresAt = time.Now().Add(time.Duration(secondLifeTime) * time.Second).Unix()
 	jtkn := jwt.NewWithClaims(signMtd, bc)
 	tknString, err := jtkn.SignedString(signKey)
 	if err != nil {
@@ -96,9 +106,9 @@ func (l *loginEngine) Authenticate(ctx *kaos.Context, req *loginEngine) (toolkit
 func (l *loginEngine) Logout(ctx *kaos.Context, req toolkit.M) (string, error) {
 	tokenid := ctx.Data().Get("jwt-token-id", "").(string)
 	if tokenid == "" {
-		return "", nil
+		return "token not found", nil
 	}
 
 	l.im.Remove(ctx, toolkit.M{}.Set("ID", tokenid))
-	return "", nil
+	return "token has been logged-out", nil
 }

@@ -14,6 +14,7 @@ type Options struct {
 	SignSecret        string
 	AllowMultiSession bool
 	MultiSession      int
+	SecondLifeTime    int
 }
 
 type Manager struct {
@@ -33,6 +34,9 @@ func NewIAM(logger *toolkit.LogEngine, secondLifeTime int, opt *Options) *Manage
 		ae.opts = Options{}
 	} else {
 		ae.opts = *opt
+	}
+	if ae.opts.SecondLifeTime == 0 {
+		ae.opts.SecondLifeTime = ae.secondLifeTime
 	}
 	return ae
 }
