@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.kanosolution.net/kano/kaos"
+	"github.com/ariefdarmawan/kiam"
 	"github.com/ariefdarmawan/kiam/acm"
 	"github.com/ariefdarmawan/kmsg"
 	"github.com/eaciit/toolkit"
@@ -12,6 +13,7 @@ import (
 type RegisterOptions struct {
 	SendNotifTopic string
 	FnPostRegister func(usr *acm.User, parm toolkit.M)
+	MailFactory    kiam.MailFactory
 }
 
 type registerEngine struct {
@@ -49,12 +51,28 @@ func (re *registerEngine) Register(ctx *kaos.Context, parm toolkit.M) (string, e
 		return "", errors.New("fail to register user: " + err.Error())
 	}
 
-	msg, e := kmsg.NewMessage(h, "UserRegistration", "SMTP", "", user.Email,
-		"User anda berhasil diregistrasi",
-		"Hai "+user.Name+"\n"+
-			"User anda telah berhasil didaftarkan dengan Login ID: "+user.LoginID)
-	if e != nil {
-		return "", errors.New("system error preparing registration welcome message: " + e.Error())
+	var msg *kmsg.Message
+	var e error
+	if re.opts.MailFactory != nil {
+		var tkm = map[string]interface{}{
+			"name":  user.Name,
+			"email": user.Email,
+		}
+		mm := re.opts.MailFactory.MakeEmail("UserRegistration", tkm)
+		msg, e = kmsg.NewMessage(h, "UserRegistration", "SMTP", "", user.Email,
+			mm.Subject,
+			mm.Body)
+		if e != nil {
+			return "", errors.New("system error preparing registration welcome message: " + e.Error())
+		}
+	} else {
+		msg, e = kmsg.NewMessage(h, "UserRegistration", "SMTP", "", user.Email,
+			"User anda berhasil diregistrasi",
+			"Hai "+user.Name+"\n"+
+				"User anda telah berhasil didaftarkan dengan Login ID: "+user.LoginID)
+		if e != nil {
+			return "", errors.New("system error preparing registration welcome message: " + e.Error())
+		}
 	}
 
 	if re.opts.FnPostRegister != nil {
