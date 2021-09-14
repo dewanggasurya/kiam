@@ -6,6 +6,7 @@ import (
 
 	"git.kanosolution.net/kano/dbflex"
 	"git.kanosolution.net/kano/kaos"
+	"github.com/ariefdarmawan/kiam"
 	"github.com/ariefdarmawan/kiam/acm"
 	"github.com/ariefdarmawan/kmsg"
 	"github.com/eaciit/toolkit"
@@ -13,6 +14,7 @@ import (
 
 type ForgetPassOptions struct {
 	SendTokenReminderTopic string
+	MailFactory            kiam.MailFactory
 }
 
 type fpass struct {
@@ -47,11 +49,29 @@ func (fp *fpass) SendToken(ctx *kaos.Context, email string) (string, error) {
 		return "", errors.New("system error when generating token: " + e.Error())
 	}
 
-	msg, e := kmsg.NewMessage(h, "ForgetPassToken", "SMTP", "", user.Email,
-		"Token untuk Pengingat Password",
-		"Link untuk pengingat password adalah: /iam/forgetpasschange?token="+token)
-	if e != nil {
-		return "", errors.New("system error preparing token message: " + e.Error())
+	var msg *kmsg.Message
+	if fp.opts.MailFactory != nil {
+		var tkm = map[string]interface{}{
+			"token": token,
+			"name":  user.Name,
+			"email": user.Email,
+			"url":   "/iam/forgetpasschange?token=" + token,
+		}
+
+		mm := fp.opts.MailFactory.MakeEmail("ForgotPassword", tkm)
+		msg, e = kmsg.NewMessage(h, "ForgetPassToken", "SMTP", "", user.Email,
+			mm.Subject,
+			mm.Body)
+		if e != nil {
+			return "", errors.New("system error preparing token message: " + e.Error())
+		}
+	} else {
+		msg, e = kmsg.NewMessage(h, "ForgetPassToken", "SMTP", "", user.Email,
+			"Token untuk Pengingat Password",
+			"Link untuk pengingat password adalah: /iam/forgetpasschange?token="+token)
+		if e != nil {
+			return "", errors.New("system error preparing token message: " + e.Error())
+		}
 	}
 
 	ev, e := ctx.DefaultEvent()
@@ -83,13 +103,13 @@ func (fp *fpass) ChangePwd(ctx *kaos.Context, req toolkit.M) (string, error) {
 	if t.ID == "" || t.Kind != "ForgetPassToken" || t.Status != "Claimed" {
 		return "", errors.New("invalid token")
 	}
-	if time.Now().After(t.ClaimTime.Add(time.Duration(t.ValidDurationInMinute) * time.Minute)) {
+	if time.Now().After(t.ClaimTime.Add(10 * time.Minute)) {
 		return "", errors.New("expired token")
 	}
 
 	u := new(acm.User)
 	h.GetByAttr(u, "Email", email)
-	if t.UserID != u.ID {
+	if u.Email != email {
 		return "", errors.New("invalid token")
 	}
 
@@ -97,9 +117,6 @@ func (fp *fpass) ChangePwd(ctx *kaos.Context, req toolkit.M) (string, error) {
 	if e := acm.SetPassword(u, pass); e != nil {
 		return "", errors.New("fail change password: " + e.Error())
 	}
-
-	t.Status = "Used"
-	h.Save(t)
 
 	return "OK", nil
 }
