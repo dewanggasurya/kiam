@@ -2,6 +2,7 @@ package kiam
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -92,7 +93,7 @@ func (sp *SessionPool) GetByReferenceID(id string) (*Session, bool) {
 }
 
 func (sp *SessionPool) Create(referenceID string, data toolkit.M, second int) (*Session, error) {
-	se, ok := sp.GetByReferenceID(referenceID)
+	_, ok := sp.GetByReferenceID(referenceID)
 	if ok {
 		return nil, errors.New("Session already exist")
 	}
@@ -101,7 +102,7 @@ func (sp *SessionPool) Create(referenceID string, data toolkit.M, second int) (*
 		second = int(sp.CleanUpDuration) / int(time.Second)
 	}
 
-	se = new(Session)
+	se := new(Session)
 	se.SessionID = uuid.New().String()
 	se.ReferenceID = referenceID
 	se.Data = data
@@ -115,10 +116,23 @@ func (sp *SessionPool) Create(referenceID string, data toolkit.M, second int) (*
 	return se, nil
 }
 
+func (sp *SessionPool) RegisterSession(sess *Session) error {
+	if sess.SessionID == "" || sess.ReferenceID == "" {
+		return fmt.Errorf("sessionID and referenceID are mandatory")
+	}
+
+	sp.mtx.Lock()
+	defer sp.mtx.Unlock()
+
+	sp.sessions[sess.SessionID] = sess
+	sp.refs[sess.ReferenceID] = sess.SessionID
+	return nil
+}
+
 func (sp *SessionPool) Update(sessionID string, second int) error {
 	se, ok := sp.GetBySessionID(sessionID)
 	if !ok {
-		return errors.New("Session for this ID is already exist")
+		return errors.New("Session for this ID is not exist")
 	}
 
 	if second != 0 {
