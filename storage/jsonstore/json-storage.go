@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/ariefdarmawan/kiam"
 )
@@ -43,8 +42,8 @@ func (s *store) Load(pool *kiam.SessionPool) error {
 			return fmt.Errorf("fail serializing file %s. %s", fi.Name(), e.Error())
 		}
 
-		if sess, e = pool.Create(sess.ReferenceID, sess.Data, int(sess.Duration)/int(time.Second)); e != nil {
-			return fmt.Errorf("fail to create session. %s", e.Error())
+		if e = pool.RegisterSession(sess); e != nil {
+			return fmt.Errorf("fail register session. %s", e.Error())
 		}
 	}
 
