@@ -11,14 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Session struct {
-	SessionID   string
-	ReferenceID string
-	Data        toolkit.M
-	LastUpdate  time.Time
-	Duration    int
-}
-
 type SessionPool struct {
 	mtx      *sync.RWMutex
 	sessions map[string]*Session
@@ -128,7 +120,6 @@ func (sp *SessionPool) RegisterSession(sess *Session) error {
 	sp.refs[sess.ReferenceID] = sess.SessionID
 	return nil
 }
-
 func (sp *SessionPool) Update(sessionID string, second int) error {
 	se, ok := sp.GetBySessionID(sessionID)
 	if !ok {

@@ -25,10 +25,10 @@ type Manager struct {
 
 func NewIAM(logger *toolkit.LogEngine, secondLifeTime int, opt *Options) *Manager {
 	ae := new(Manager)
-	ae.pool = NewSessionPool(logger)
 	if secondLifeTime == 0 {
 		secondLifeTime = 60 * 60 * 24 * 7
 	}
+	ae.pool = NewSessionPool(logger)
 	ae.secondLifeTime = secondLifeTime
 	if opt == nil {
 		ae.opts = Options{}

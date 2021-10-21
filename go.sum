@@ -41,8 +41,6 @@ github.com/ariefdarmawan/flexmgo v0.1.15 h1:eNOzV9YAVPCmnwTyS/Fr2LalZaYLZqG94GkF
 github.com/ariefdarmawan/flexmgo v0.1.15/go.mod h1:ZNVfnly+iMMBJ9sP142Kkt31CeQk+M8LLWYEfF59Qr8=
 github.com/ariefdarmawan/flexpg v0.6.3 h1:a4IVMV1H1yph46u/oNXZvjksD2t2AG/4+sZ6Ain6TRI=
 github.com/ariefdarmawan/flexpg v0.6.3/go.mod h1:aesluyV4eNRR5+bXiPr8iJSqeiBCPrvT2jfQg0CfKpQ=
-github.com/ariefdarmawan/kiam v0.0.2 h1:4fcztTTElSKkk84yfSsGJ/d9bpOSLa4oAZX2smuvszk=
-github.com/ariefdarmawan/kiam v0.0.2/go.mod h1:2ZGm/orrxk+e6SOEhJcaKQsrCnyANvT4fKZjCS5Imqk=
 github.com/ariefdarmawan/kmsg v0.0.2 h1:UtE9SQDg/EljqzHqUwKi0xPzpDEEBLOItbGUDOURijU=
 github.com/ariefdarmawan/kmsg v0.0.2/go.mod h1:zb9rK9MWrr1jBhCkP46rPTSiw4L+z9AzMJVX/bNFvVA=
 github.com/ariefdarmawan/reflector v0.0.0-20210429160254-3690a39ca6e7 h1:Bo3imCZPoGt6SNGPgJ5oICKscpLO+60d2SG9Gv6DnGg=
